@@ -1,0 +1,14 @@
+---
+title: "Exploratory Analysis of College Major and Income Data"
+author: "Gaurav Sharma"
+date: "10/07/2020"
+output: github_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE, fig.width = 8, fig.height = 5, dpi = 180)
+library(tidyverse)
+library(tidymodels)
+```
