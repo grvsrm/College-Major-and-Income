@@ -8,7 +8,110 @@ editor_options:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, cache = TRUE, fig.width = 8, fig.height = 5, dpi = 180)
+knitr::opts_chunk$set(
+	echo = TRUE,
+	fig.height = 5,
+	fig.width = 8,
+	cache = TRUE,
+	dpi = 180
+)
 library(tidyverse)
-library(tidymodels)
+library(scales)
+theme_set(theme_light())
 ```
+
+```{r}
+tt_file <- tidytuesdayR::tt_load("2018-10-16")
+recent_grads <- tt_file$`recent-grads`
+```
+
+### What is the median salary for major graduates in the country
+```{r}
+recent_grads %>% 
+    ggplot(aes(Median)) +
+    geom_histogram()
+```
+
+### What categories of major make more money 
+```{r}
+recent_grads %>% 
+    mutate(Major_category = fct_reorder(Major_category, Median)) %>% 
+    ggplot(aes(Median, Major_category)) +
+    geom_boxplot() +
+    scale_x_continuous(labels = dollar_format())
+```
+
+### What categories of major make more money (Median Salary)
+```{r}
+recent_grads %>% 
+    group_by(Major_category) %>% 
+    summarise(Median = median(Median)) %>% 
+    mutate(Major_category = fct_reorder(Major_category, Median)) %>% 
+    ggplot(aes(Median, Major_category)) +
+    geom_col() +
+    scale_x_continuous(labels = dollar_format())
+```
+
+### Which are the highest earning majors
+```{r}
+recent_grads %>% 
+    arrange(desc(Median)) %>% 
+    select(Major, Major_category, Median, P25th, P75th, Sample_size) %>%
+    filter(Sample_size >= 100) %>% 
+    head(20) %>% 
+    mutate(Major = str_to_title(Major),
+           Major = fct_reorder(Major, Median)) %>% 
+    ggplot(aes(Major, Median, color = Major_category)) +
+    geom_point() +
+    geom_errorbar(aes(ymin = P25th, ymax = P75th)) +
+    coord_flip() +
+    scale_y_continuous(labels = dollar_format()) +
+    expand_limits(y = 0) +
+    labs(title = "Which are the highest earning majors",
+         subtitle = "Chosen from the majors where atleast 100 graduates were surveyed. Bars represent IQR",
+         x = "",
+         y = "Median Salary of Graduates")
+    
+```
+
+### Which are the lowest earning majors
+
+```{r}
+recent_grads %>% 
+    arrange(desc(Median)) %>% 
+    select(Major, Major_category, Median, P25th, P75th, Sample_size) %>%
+    filter(Sample_size >= 100) %>% 
+    tail(20) %>% 
+    mutate(Major = str_to_title(Major),
+           Major = fct_reorder(Major, Median)) %>% 
+    ggplot(aes(Major, Median, color = Major_category)) +
+    geom_point() +
+    geom_errorbar(aes(ymin = P25th, ymax = P75th)) +
+    coord_flip() +
+    scale_y_continuous(labels = dollar_format()) +
+    expand_limits(y = 0) +
+    labs(title = "Which are the lowest earning majors",
+         subtitle = "Top 20 Majors chosen from the majors where atleast 100 graduates were surveyed. Bars represent IQR",
+         x = "",
+         y = "Median Salary of Graduates")
+
+```
+
+```{r}
+recent_grads %>% 
+    arrange(desc(Median)) %>% 
+    select(Major, Major_category, Median, P25th, P75th, Sample_size) %>% 
+    mutate(Major = str_to_title(Major),
+           Major = fct_reorder(Major, Median)) %>% 
+    ggplot(aes(Sample_size, Median)) +
+    geom_point() +
+    geom_text(aes(label = Major), check_overlap = T, vjust = 1, hjust = 1) +
+    scale_x_log10()
+    
+```
+
+
+
+
+
+
