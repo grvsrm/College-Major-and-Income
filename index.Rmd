@@ -97,6 +97,7 @@ recent_grads %>%
 
 ```
 
+### Lets see if we are seeing some of the majors having high median salaries just because the sample size was too small for them. Lets' confirm it.
 ```{r}
 recent_grads %>% 
     arrange(desc(Median)) %>% 
@@ -110,8 +111,84 @@ recent_grads %>%
     
 ```
 
+### What are the most common majors
+```{r}
+recent_grads %>% 
+    arrange(desc(Total)) %>% 
+    head(20) %>%
+    select(Major, Major_category, Total) %>% 
+    mutate(Major = str_to_title(Major),
+           Major = fct_reorder(Major, Total)) %>% 
+    ggplot(aes(Major, Total, fill = Major_category, color = Major_category)) +
+    geom_col() +
+    coord_flip() +
+    scale_y_continuous(labels = comma_format()) 
+```
 
+### What are the most common major categories
+```{r}
+recent_grads %>% 
+    count(Major_category,wt = Total, sort = T) %>% 
+    mutate(Major_category = str_to_title(Major_category),
+           Major_category = fct_reorder(Major_category, n)) %>% 
+    ggplot(aes(Major_category, n, fill = Major_category)) +
+    geom_col() +
+    coord_flip() +
+    theme(legend.position = "none") +
+    scale_y_continuous(labels = comma_format())
 
+```
 
+### How gender relates to major categories
+```{r}
+recent_grads %>% 
+    pivot_longer(Men:Women, names_to = "Gender", values_to = "Number") %>% 
+    select(Major_category, Gender, Number) %>% 
+    count(Major_category, Gender, wt = Number, sort = T) %>% 
+    mutate(Major_category = fct_reorder(Major_category, n)) %>% 
+    ggplot(aes(Major_category, n, color = Gender, fill = Gender)) +
+    geom_col() +
+    coord_flip() +
+    scale_y_continuous(labels = comma_format()) +
+    labs(x ="",
+         y = "Number of Graduates")
+    
+    
+```
 
+### How gender relates to major studies
+```{r}
+
+recent_grads %>% 
+    arrange(desc(Median)) %>% 
+    mutate(Major = str_to_title(Major),
+           Major = fct_reorder(Major, Median)) %>% 
+    arrange(desc(Total)) %>% 
+    head(20) %>% 
+    pivot_longer(Men:Women, names_to = "Gender", values_to = "Number") %>%
+    select(Major, Gender, Number) %>%
+    mutate(Major = fct_reorder(Major, Number)) %>% 
+    ggplot(aes(Major, Number, color = Gender, fill = Gender)) +
+    geom_col() +
+    coord_flip() +
+    scale_y_continuous(labels = comma_format()) +
+    labs(x ="",
+         y = "Number of Graduates")
+
+```
+
+### Share of women is higher in majors such as Psychology, Health and Business
+```{r}
+recent_grads %>% 
+    select(Major, Major_category, ShareWomen, Total) %>% 
+    drop_na() %>% 
+    mutate(Major = str_to_title(Major)) %>% 
+    ggplot(aes(Total, ShareWomen)) +
+    geom_point(aes(color = Major), size = 2) +
+    geom_text(aes(label = Major, color = Major), check_overlap = T, hjust =1, vjust = 1) +
+    theme(legend.position = "none") +
+    scale_x_continuous(labels = comma_format()) +
+    coord_flip()
+
+```
 
