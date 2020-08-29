@@ -262,14 +262,27 @@ g <- major_processed %>%
     ## Warning: Ignoring unknown aesthetics: label
 
 ``` r
+g
+```
+
+    ## `geom_smooth()` using formula 'y ~ x'
+
+    ## Warning: Removed 1 rows containing non-finite values (stat_smooth).
+
+    ## Warning: Removed 1 rows containing missing values (geom_point).
+
+![](index_files/figure-gfm/unnamed-chunk-14-1.png)<!-- -->
+
+``` r
 #ggplotly(g)
 ```
 
 ``` r
-major_processed %>% 
+major_lm <- major_processed %>% 
     select(Major,Total, ShareWomen,Sample_size, Median) %>% 
     lm(Median ~ ShareWomen, data = ., weights = Sample_size) %>% 
     summary()
+major_lm
 ```
 
     ## 
@@ -293,7 +306,7 @@ major_processed %>%
     ## F-statistic: 96.87 on 1 and 170 DF,  p-value: < 2.2e-16
 
 ``` r
-major_processed %>% 
+major_lm_grouped <- major_processed %>% 
     select(Major,Major_category, Total, ShareWomen, Sample_size, Median) %>% 
     add_count(Major_category) %>% 
     filter(n>=10) %>% 
@@ -309,6 +322,10 @@ major_processed %>%
     ## Warning: All elements of `...` must be named.
     ## Did you want `data = c(Major, Total, ShareWomen, Sample_size, Median, n)`?
 
+``` r
+major_lm_grouped
+```
+
     ## # A tibble: 9 x 9
     ##   Major_category  data   model term  estimate std.error statistic p.value    fdr
     ##   <chr>           <list> <lis> <chr>    <dbl>     <dbl>     <dbl>   <dbl>  <dbl>
@@ -321,3 +338,5 @@ major_processed %>%
     ## 7 Education       <tibb~ <lm>  Shar~   -1996.     3084.    -0.647  0.528  0.594 
     ## 8 Humanities & L~ <tibb~ <lm>  Shar~   -1814.     4128.    -0.439  0.668  0.668 
     ## 9 Health          <tibb~ <lm>  Shar~   54721.    23427.     2.34   0.0416 0.0937
+
+### End of Report

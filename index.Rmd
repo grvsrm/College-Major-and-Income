@@ -231,23 +231,24 @@ g <- major_processed %>%
     expand_limits(y = 0) +
     scale_x_continuous(labels = percent_format()) +
     theme(legend.position = "none")
+g
+```
+
+```{r}
+#ggplotly(g)
 
 ```
 
 ```{r}
-ggplotly(g)
-
-```
-
-```{r}
-major_processed %>% 
+major_lm <- major_processed %>% 
     select(Major,Total, ShareWomen,Sample_size, Median) %>% 
     lm(Median ~ ShareWomen, data = ., weights = Sample_size) %>% 
     summary()
+major_lm
 ```
 
 ```{r}
-major_processed %>% 
+major_lm_grouped <- major_processed %>% 
     select(Major,Major_category, Total, ShareWomen, Sample_size, Median) %>% 
     add_count(Major_category) %>% 
     filter(n>=10) %>% 
@@ -258,13 +259,10 @@ major_processed %>%
     filter(term == "ShareWomen") %>% 
     arrange(estimate) %>% 
     mutate(fdr = p.adjust(p.value, method = "fdr"))
-
+major_lm_grouped
 ```
 
-```{r}
-
-```
-
+### End of Report
 
 
 
