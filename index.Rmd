@@ -17,12 +17,20 @@ knitr::opts_chunk$set(
 )
 library(tidyverse)
 library(scales)
+library(ggrepel)
+library(broom)
+library(plotly)
 theme_set(theme_light())
 ```
 
 ```{r}
 tt_file <- tidytuesdayR::tt_load("2018-10-16")
 recent_grads <- tt_file$`recent-grads`
+
+major_processed  <- recent_grads %>% 
+    arrange(desc(Median)) %>% 
+    mutate(Major = str_to_title(Major),
+           Major = fct_reorder(Major, Median))
 ```
 
 ### What is the median salary for major graduates in the country
@@ -169,7 +177,7 @@ recent_grads %>%
     select(Major, Gender, Number) %>%
     mutate(Major = fct_reorder(Major, Number)) %>% 
     ggplot(aes(Major, Number, color = Gender, fill = Gender)) +
-    geom_col() +
+    geom_col(alpha = 0.7) +
     coord_flip() +
     scale_y_continuous(labels = comma_format()) +
     labs(x ="",
@@ -191,4 +199,74 @@ recent_grads %>%
     coord_flip()
 
 ```
+
+```{r by major category}
+by_major_category <- recent_grads %>% 
+    filter(!is.na(Total)) %>% 
+    group_by(Major_category) %>% 
+    summarise(Men = sum(Men),
+              Women = sum(Women),
+              Total = sum(Total),
+              Median_Salary = sum(Median*Sample_size)/sum(Sample_size)) %>% 
+    ungroup() %>% 
+    mutate(ShareWomen = Women/Total) %>% 
+    arrange(desc(ShareWomen))
+```
+
+```{r}
+
+by_major_category %>% 
+    ggplot(aes(ShareWomen, Median_Salary)) +
+    geom_point() +
+    geom_smooth(method = "lm") +
+    geom_text_repel(aes(label = Major_category), hjust = 1, vjust = 1) +
+    expand_limits(y = 0)
+```
+
+```{r}
+g <- major_processed %>% 
+    ggplot(aes(ShareWomen, Median)) +
+    geom_point(aes(color = Major_category, size = Sample_size, label = Major), alpha = 0.8) +
+    geom_smooth(method = "lm") +
+    expand_limits(y = 0) +
+    scale_x_continuous(labels = percent_format()) +
+    theme(legend.position = "none")
+
+```
+
+```{r}
+ggplotly(g)
+
+```
+
+```{r}
+major_processed %>% 
+    select(Major,Total, ShareWomen,Sample_size, Median) %>% 
+    lm(Median ~ ShareWomen, data = ., weights = Sample_size) %>% 
+    summary()
+```
+
+```{r}
+major_processed %>% 
+    select(Major,Major_category, Total, ShareWomen, Sample_size, Median) %>% 
+    add_count(Major_category) %>% 
+    filter(n>=10) %>% 
+    nest(-Major_category) %>% 
+    mutate(model = map(data, ~lm(Median~ShareWomen, weights = Sample_size, data = .)),
+           tidied = map(model, tidy)) %>% 
+    unnest(tidied) %>% 
+    filter(term == "ShareWomen") %>% 
+    arrange(estimate) %>% 
+    mutate(fdr = p.adjust(p.value, method = "fdr"))
+
+```
+
+```{r}
+
+```
+
+
+
+
+
 
